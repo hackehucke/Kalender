@@ -70,7 +70,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .day.sel{background:var(--sel)}
 .day.wkend:not(.today) .n{color:var(--muted)}
 .day.drop{background:var(--sel);outline:2px dashed var(--accent);outline-offset:-2px}
-.syms{flex:none;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:1px 2px;width:100%;max-width:var(--sw,42px)}
+.syms{flex:none;display:flex;flex-wrap:nowrap;overflow:hidden;justify-content:center;align-content:flex-start;gap:1px 2px;width:100%;max-width:var(--sw,42px)}
 .ic{flex:none;width:12px;height:12px;color:var(--c);fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
 .grid.compact .day{padding-top:2px;gap:1px}
 .grid.compact .day .n{width:26px;height:26px;font-size:14px}
@@ -312,7 +312,7 @@ function renderGrid(){
   grid.style.gridTemplateRows='repeat('+rows+',minmax(0,1fr))';
   const cw=(grid.clientWidth-12)/7, ch=(grid.clientHeight-10)/6;
   const per=grid.clientWidth?Math.max(1,Math.min(3,Math.floor((cw-2)/14))):3;
-  const cap=per*(grid.clientHeight&&ch-28-4>=26?2:1);
+  const cap=per;
   grid.style.setProperty('--sw',(per*14)+'px');
   grid.classList.toggle('compact',!!grid.clientHeight&&ch<50);
   let h='';
@@ -377,6 +377,9 @@ sw.innerHTML=COLORS.map(([k,n])=>'<button type="button" data-c="'+k+'" style="--
 let curColor='freunde';
 function setColor(c){curColor=c;$('catName').textContent=(COLORS.find(x=>x[0]===c)||COLORS[0])[1];sw.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c))}
 sw.onclick=e=>{const b=e.target.closest('button');if(b)setColor(b.dataset.c)};
+// keep the keyboard open: tapping buttons or empty space in the form must not take focus from the text field
+$('form').addEventListener('mousedown',e=>{if(!e.target.closest('input,select,textarea'))e.preventDefault()});
+$('form').addEventListener('touchstart',e=>{},{passive:true});
 function fillRep(val){
   const s=$('evDate').value||sel, opts=repOptions(s);
   $('evRep').innerHTML=opts.map(([v,l])=>'<option value="'+v+'">'+esc(l)+'</option>').join('');
