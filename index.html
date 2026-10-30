@@ -16,22 +16,22 @@
 :root{
   --bg:#F3F5F8; --surface:#FFFFFF; --ink:#17212C; --muted:#687483; --line:#DDE2E8;
   --accent:#2155C9; --accent-ink:#FFFFFF; --sel:#E4EBF8; --danger:#C93A34;
-  --c-rot:#E0453F; --c-orange:#EB850E; --c-gelb:#D3A200; --c-gruen:#2C9762;
-  --c-blau:#3466DB; --c-lila:#8A55D6; --c-pink:#D2448B; --c-grau:#7A8592;
+  --c-freunde:#8A55D6; --c-familie:#D2448B; --c-geburtstag:#E2720A; --c-orga:#17919F; --c-arbeit:#3466DB;
+  --c-sport:#2C9762; --c-erledigung:#8B5E3C; --c-sonstiges:#7A8592; --c-wichtig:#E0372F;
   --f-display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
   --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F1317; --surface:#181D24; --ink:#E6EBF1; --muted:#8B96A3; --line:#2A313B;
   --accent:#7AA2FF; --accent-ink:#0F1317; --sel:#1E2938; --danger:#FF7A72;
-  --c-rot:#FF6A63; --c-orange:#FFA03A; --c-gelb:#F2C230; --c-gruen:#4CC48A;
-  --c-blau:#6B95FF; --c-lila:#B08AF2; --c-pink:#F173B1; --c-grau:#9AA4B0;
+  --c-freunde:#B08AF2; --c-familie:#F173B1; --c-geburtstag:#FFA03A; --c-orga:#3CC4D2; --c-arbeit:#6B95FF;
+  --c-sport:#4CC48A; --c-erledigung:#C9925F; --c-sonstiges:#9AA4B0; --c-wichtig:#FF5F57;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0F1317; --surface:#181D24; --ink:#E6EBF1; --muted:#8B96A3; --line:#2A313B;
   --accent:#7AA2FF; --accent-ink:#0F1317; --sel:#1E2938; --danger:#FF7A72;
-  --c-rot:#FF6A63; --c-orange:#FFA03A; --c-gelb:#F2C230; --c-gruen:#4CC48A;
-  --c-blau:#6B95FF; --c-lila:#B08AF2; --c-pink:#F173B1; --c-grau:#9AA4B0;
+  --c-freunde:#B08AF2; --c-familie:#F173B1; --c-geburtstag:#FFA03A; --c-orga:#3CC4D2; --c-arbeit:#6B95FF;
+  --c-sport:#4CC48A; --c-erledigung:#C9925F; --c-sonstiges:#9AA4B0; --c-wichtig:#FF5F57;
   color-scheme:dark}
 
 html{height:100%;box-sizing:border-box;overflow:hidden;overscroll-behavior:none}
@@ -62,17 +62,19 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .cal{display:flex;flex-direction:column;min-height:0;padding-bottom:8px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:4px}
 .grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;touch-action:pan-y}
-.day{border:0;background:transparent;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:0;min-width:0;min-height:0;overflow:hidden}
+.day{border:0;background:transparent;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;padding:4px 0 0;min-width:0;min-height:0;overflow:hidden}
 .day .n{flex:none;font:500 15px/1 var(--f-display);font-variant-numeric:tabular-nums;width:28px;height:28px;display:grid;place-items:center;border-radius:50%}
 .day.out .n{color:var(--muted);opacity:.55}
-.day.out .dots{opacity:.5}
+.day.out .syms{opacity:.5}
 .day.today .n{background:var(--accent);color:var(--accent-ink);font-weight:700}
 .day.sel{background:var(--sel)}
 .day.wkend:not(.today) .n{color:var(--muted)}
 .day.drop{background:var(--sel);outline:2px dashed var(--accent);outline-offset:-2px}
-.dots{flex:none;display:flex;gap:3px;align-items:center;height:6px}
-.dots i{width:6px;height:6px;border-radius:50%;background:var(--c)}
-.dots b{font-size:10px;line-height:7px;font-weight:700;color:var(--muted)}
+.syms{flex:none;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:1px 2px;width:100%;max-width:var(--sw,42px)}
+.ic{flex:none;width:12px;height:12px;color:var(--c);fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.grid.compact .day{padding-top:2px;gap:1px}
+.grid.compact .day .n{width:26px;height:26px;font-size:14px}
+.syms b{width:12px;font-size:11px;line-height:12px;font-weight:700;text-align:center;color:var(--muted)}
 
 /* agenda */
 .agenda{position:relative;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--line);
@@ -85,7 +87,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .ev{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;border:0;border-radius:12px;padding:11px 12px;
   background:color-mix(in srgb,var(--c) 15%,var(--surface));
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
-.ev .dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--c);margin-top:6px}
+.ev .ic{width:20px;height:20px;stroke-width:2;margin-top:1px}
 .ev .b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .ev .t{white-space:pre-wrap;overflow-wrap:anywhere}
 .ev .t::first-line{font-weight:600}
@@ -118,9 +120,11 @@ textarea,input[type=date],select{width:100%;font:inherit;font-size:16px;color:va
 textarea{min-height:64px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row2>*{min-width:0}
-.sw{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
-.sw button{aspect-ratio:1;max-width:100%;border-radius:50%;border:0;background:var(--c);position:relative}
-.sw button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--c)}
+.sw{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px}
+.sw button{aspect-ratio:1;max-width:100%;min-width:0;padding:0;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.sw button .ic{width:20px;height:20px;stroke-width:2}
+.sw button[aria-pressed="true"]{background:color-mix(in srgb,var(--c) 18%,var(--surface));border-color:var(--c);box-shadow:0 0 0 1px var(--c)}
+.lbl b{color:var(--ink);text-transform:none;letter-spacing:0;font-weight:600}
 .err{color:var(--danger);font-size:13px}
 .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding-top:4px}
 .acts .sp{flex:1}
@@ -145,6 +149,17 @@ textarea{min-height:64px;resize:vertical}
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-freunde" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3.2"/><path d="M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><circle cx="16.5" cy="7.5" r="2.6"/><path d="M17 14a4 4 0 0 1 4 4v2"/></symbol>
+  <symbol id="i-familie" viewBox="0 0 24 24"><path d="M19.5 12.6 12 20l-7.5-7.4A4.8 4.8 0 1 1 12 6.1a4.8 4.8 0 1 1 7.5 6.5z"/></symbol>
+  <symbol id="i-geburtstag" viewBox="0 0 24 24"><rect x="4" y="12" width="16" height="8.5" rx="2"/><path d="M4 15.6c1.3 0 1.3 1 2.7 1s1.3-1 2.6-1 1.3 1 2.7 1 1.3-1 2.6-1 1.4 1 2.7 1 1.4-1 2.7-1"/><path d="M12 12V8.5"/><path d="M12 3.2c.9 1 1.3 1.7 1.3 2.3a1.3 1.3 0 0 1-2.6 0c0-.6.4-1.3 1.3-2.3z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-orga" viewBox="0 0 24 24"><path d="M3 5.5a8.5 8.5 0 0 1 9 0V19a8.5 8.5 0 0 0-9 0z"/><path d="M21 5.5a8.5 8.5 0 0 0-9 0V19a8.5 8.5 0 0 1 9 0z"/></symbol>
+  <symbol id="i-arbeit" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7V5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></symbol>
+  <symbol id="i-sport" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.6l4.2 3-1.6 4.9H9.4l-1.6-4.9z" fill="currentColor"/><path d="M12 7.6V3.2M16.2 10.6l4.3-1.4M14.6 15.5l2.6 3.6M9.4 15.5l-2.6 3.6M7.8 10.6 3.5 9.2"/></symbol>
+  <symbol id="i-erledigung" viewBox="0 0 24 24"><path d="M6.4 8h11.2a1.5 1.5 0 0 1 1.5 1.6l-.9 9.6a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8l-.9-9.6A1.5 1.5 0 0 1 6.4 8z"/><path d="M9 11V7a3 3 0 0 1 6 0v4"/></symbol>
+  <symbol id="i-sonstiges" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-wichtig" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="currentColor" stroke="none"/></symbol>
+</svg>
 <div class="app">
   <header>
     <div class="top">
@@ -174,7 +189,7 @@ textarea{min-height:64px;resize:vertical}
       <div class="err" id="evErr" hidden>Schreib kurz rein, was ansteht.</div>
     </div>
     <div class="field">
-      <span class="lbl">Farbe</span>
+      <span class="lbl">Kategorie: <b id="catName">Freunde</b></span>
       <div class="sw" id="swatches"></div>
     </div>
     <div class="row2">
@@ -219,7 +234,10 @@ const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','S
 const MON_S=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 const WD_L=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const WD_S=['So','Mo','Di','Mi','Do','Fr','Sa'];
-const COLORS=[['blau','Blau'],['gruen','Grün'],['gelb','Gelb'],['orange','Orange'],['rot','Rot'],['pink','Pink'],['lila','Lila'],['grau','Grau']];
+const COLORS=[['freunde','Freunde'],['familie','Familie'],['geburtstag','Geburtstag'],['orga','Orga'],['arbeit','Arbeit / Uni'],['sport','Sport'],['erledigung','Erledigungen'],['sonstiges','Sonstiges'],['wichtig','Wichtig']];
+const OLD={blau:'arbeit',gruen:'sport',gelb:'erledigung',orange:'geburtstag',rot:'wichtig',pink:'familie',lila:'freunde',grau:'sonstiges'};
+const catOf=e=>COLORS.some(c=>c[0]===e.color)?e.color:(OLD[e.color]||'sonstiges');
+const icon=(k,cls)=>'<svg class="ic'+(cls?' '+cls:'')+'" style="--c:var(--c-'+k+')" aria-hidden="true"><use href="#i-'+k+'"/></svg>';
 const CACHE='monatsblatt.v1';
 
 const $=id=>document.getElementById(id);
@@ -235,10 +253,10 @@ const newId=()=>'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7
 let events={};
 const today=key(new Date());
 let sel=today; const t0=new Date(); let view={y:t0.getFullYear(),m:t0.getMonth()};
-let lastColor='blau';
+let lastColor='freunde';
 
 /* ---------- storage ---------- */
-function loadCache(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c&&c.events){events=c.events;lastColor=c.lastColor||lastColor}}catch(e){}}
+function loadCache(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c&&c.events){events=c.events;lastColor=c.lastColor?(COLORS.some(x=>x[0]===c.lastColor)?c.lastColor:(OLD[c.lastColor]||'freunde')):lastColor}}catch(e){}}
 function saveCache(){try{localStorage.setItem(CACHE,JSON.stringify({events,lastColor,saved:Date.now()}))}catch(e){showToast('Speichern im Browser fehlgeschlagen. Mach ein Backup.')}}
 function put(ev){events[ev.id]=ev;saveCache()}
 function removeEv(id){delete events[id];saveCache()}
@@ -292,22 +310,28 @@ function occList(s,d){
 function renderGrid(){
   const {y,m}=view, off=(new Date(y,m,1).getDay()+6)%7, rows=6;
   grid.style.gridTemplateRows='repeat('+rows+',minmax(0,1fr))';
+  const cw=(grid.clientWidth-12)/7, ch=(grid.clientHeight-10)/6;
+  const per=grid.clientWidth?Math.max(1,Math.min(3,Math.floor((cw-2)/14))):3;
+  const cap=per*(grid.clientHeight&&ch-28-4>=26?2:1);
+  grid.style.setProperty('--sw',(per*14)+'px');
+  grid.classList.toggle('compact',!!grid.clientHeight&&ch<50);
   let h='';
   for(let i=0;i<rows*7;i++){
     const d=new Date(y,m,1-off+i), s=key(d), evs=occList(s,d);
     const cls=['day'];
     if(d.getMonth()!==m)cls.push('out'); if(s===today)cls.push('today'); if(s===sel)cls.push('sel');
     if(d.getDay()===0||d.getDay()===6)cls.push('wkend');
-    let dots=evs.slice(0,evs.length>4?3:4).map(e=>'<i style="--c:var(--c-'+e.color+')"></i>').join('');
-    if(evs.length>4)dots+='<b>+</b>';
-    h+='<button type="button" class="'+cls.join(' ')+'" data-date="'+s+'" aria-label="'+d.getDate()+'. '+MONTHS[d.getMonth()]+(evs.length?', '+evs.length+' Termin'+(evs.length>1?'e':''):'')+'"><span class="n">'+d.getDate()+'</span><span class="dots">'+dots+'</span></button>';
+    const cats=evs.map(catOf).sort((a,b)=>(b==='wichtig')-(a==='wichtig'));
+    let dots=(cats.length>cap?cats.slice(0,cap-1):cats).map(k=>icon(k)).join('');
+    if(cats.length>cap)dots+='<b>+</b>';
+    h+='<button type="button" class="'+cls.join(' ')+'" data-date="'+s+'" aria-label="'+d.getDate()+'. '+MONTHS[d.getMonth()]+(evs.length?', '+evs.length+' Termin'+(evs.length>1?'e':''):'')+'"><span class="n">'+d.getDate()+'</span><span class="syms">'+dots+'</span></button>';
   }
   grid.innerHTML=h;
   $('mname').textContent=MONTHS[m]; $('yname').textContent=y;
 }
 function card(e,s){
   const r=e.rep&&e.rep!=='none'?'<span class="r">'+esc(repShort(e))+'</span>':'';
-  return '<button type="button" class="ev" data-id="'+e.id+'" data-date="'+s+'" style="--c:var(--c-'+e.color+')"><span class="dot"></span><span class="b"><span class="t">'+esc(e.text)+'</span>'+r+'</span></button>';
+  return '<button type="button" class="ev" data-id="'+e.id+'" data-date="'+s+'" style="--c:var(--c-'+catOf(e)+')">'+icon(catOf(e))+'<span class="b"><span class="t">'+esc(e.text)+'</span>'+r+'</span></button>';
 }
 function renderAgenda(scroll){
   const s=sel, d=parse(s), evs=occList(s,d);
@@ -349,9 +373,9 @@ function withUndo(msg,ids,fn){
 /* ---------- editor ---------- */
 let editing=null, occDate=null, isNew=false, delArmed=false;
 const sw=$('swatches');
-sw.innerHTML=COLORS.map(([k,n])=>'<button type="button" data-c="'+k+'" style="--c:var(--c-'+k+')" aria-label="'+n+'" aria-pressed="false"></button>').join('');
-let curColor='blau';
-function setColor(c){curColor=c;sw.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c))}
+sw.innerHTML=COLORS.map(([k,n])=>'<button type="button" data-c="'+k+'" style="--c:var(--c-'+k+')" aria-label="'+n+'" title="'+n+'" aria-pressed="false">'+icon(k)+'</button>').join('');
+let curColor='freunde';
+function setColor(c){curColor=c;$('catName').textContent=(COLORS.find(x=>x[0]===c)||COLORS[0])[1];sw.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c))}
 sw.onclick=e=>{const b=e.target.closest('button');if(b)setColor(b.dataset.c)};
 function fillRep(val){
   const s=$('evDate').value||sel, opts=repOptions(s);
@@ -367,7 +391,7 @@ function openEditor(ev,date){
   editing=ev?clone(ev):{id:newId(),text:'',date:date||sel,color:lastColor,rep:'none',created:Date.now()};
   $('sheetTitle').textContent=isNew?'Neuer Termin':'Termin bearbeiten';
   $('evText').value=editing.text; $('evDate').value=editing.date; $('evUntil').value=editing.until||'';
-  setColor(editing.color); fillRep(editing.rep||'none');
+  setColor(catOf(editing)); fillRep(editing.rep||'none');
   $('evErr').hidden=true; $('delBtn').hidden=isNew; $('delBtn').textContent='Löschen'; $('delChoice').hidden=true;
   $('sheet').hidden=false; $('fab').hidden=true;
   if(isNew)setTimeout(()=>$('evText').focus(),60);
@@ -569,7 +593,7 @@ $('bkFile').onchange=async()=>{
     if(!src||typeof src!=='object')throw 0;
     let n=0;
     Object.values(src).forEach(ev=>{if(ev&&ev.id&&typeof ev.text==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(ev.date)){
-      if(!COLORS.some(c=>c[0]===ev.color))ev.color='blau'; events[ev.id]=ev; n++}});
+      ev.color=catOf(ev); events[ev.id]=ev; n++}});
     saveCache(); renderAll(true); bkInfo();
     $('bkMsg').textContent=n+' Termine aus dem Backup übernommen. Vorhandene Termine bleiben erhalten.';
   }catch(e){$('bkMsg').textContent='Die Datei ist kein Monatsblatt-Backup.'}
@@ -584,6 +608,7 @@ function fitSheets(){
 }
 if(window.visualViewport){visualViewport.addEventListener('resize',fitSheets);visualViewport.addEventListener('scroll',fitSheets)}
 window.addEventListener('resize',fitSheets);
+let rzT=null;window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(renderGrid,120)});
 
 /* ---------- boot ---------- */
 loadCache(); renderAll(true);
