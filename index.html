@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Monatsblatt</title>
 <meta name="theme-color" content="#F3F5F8" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1317" media="(prefers-color-scheme: dark)">
@@ -115,7 +115,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 .field{display:flex;flex-direction:column;gap:6px}
 .field>label,.lbl{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 textarea,input[type=date],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-textarea{min-height:84px;resize:vertical}
+textarea{min-height:64px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row2>*{min-width:0}
 .sw{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
@@ -310,23 +310,14 @@ function card(e,s){
   return '<button type="button" class="ev" data-id="'+e.id+'" data-date="'+s+'" style="--c:var(--c-'+e.color+')"><span class="dot"></span><span class="b"><span class="t">'+esc(e.text)+'</span>'+r+'</span></button>';
 }
 function renderAgenda(scroll){
-  const {y,m}=view; let h='', any=false;
-  for(let i=1;i<=dim(y,m);i++){
-    const d=new Date(y,m,i), s=key(d), evs=occList(s,d);
-    if(!evs.length&&s!==sel)continue;
-    if(evs.length)any=true;
-    h+='<div class="grp'+(s===sel?' sel':'')+'" data-date="'+s+'"><div class="gh"><span class="d">'+WD_S[d.getDay()]+' '+i+'. '+MON_S[m]+'</span>'+(s===today?'<span class="chip">Heute</span>':'')+'</div>';
-    h+=evs.length?evs.map(e=>card(e,s)).join(''):'<div class="free"><span>Nichts geplant.</span><button type="button" class="addhere" data-date="'+s+'">+ Termin</button></div>';
-    h+='</div>';
-  }
-  if(!any&&!Object.keys(events).length){
-    h='<div class="empty"><strong>Noch keine Termine</strong>Tipp oben auf einen Tag und dann auf +. Uhrzeit schreibst du einfach mit rein, zum Beispiel „18:00 Training“.</div>';
-  } else if(any) h+='<div class="hint">Termin gedrückt halten und ziehen: in der Liste umsortieren oder oben auf einen anderen Tag legen.</div>';
+  const s=sel, d=parse(s), evs=occList(s,d);
+  let h='<div class="grp sel" data-date="'+s+'"><div class="gh"><span class="d">'+WD_L[d.getDay()]+', '+d.getDate()+'. '+MONTHS[d.getMonth()]+'</span>'+(s===today?'<span class="chip">Heute</span>':'')+'</div>';
+  h+=evs.length?evs.map(e=>card(e,s)).join(''):'<div class="free"><span>Nichts geplant.</span><button type="button" class="addhere" data-date="'+s+'">+ Termin</button></div>';
+  h+='</div>';
+  if(!Object.keys(events).length)h+='<div class="hint">Tipp oben auf einen Tag und dann auf +. Die Uhrzeit schreibst du einfach mit rein, zum Beispiel „18:00 Training“.</div>';
+  else if(evs.length)h+='<div class="hint">Termin gedrückt halten und ziehen: hier umsortieren oder oben auf einen anderen Tag legen.</div>';
   agenda.innerHTML=h;
-  if(scroll){
-    const g=agenda.querySelector('.grp.sel');
-    if(g)agenda.scrollTo({top:Math.max(0,g.offsetTop-2),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
-  }
+  if(scroll)agenda.scrollTop=0;
 }
 function renderAll(scroll){renderGrid();renderAgenda(scroll)}
 
@@ -339,7 +330,7 @@ function shiftMonth(n){
   let m=view.m+n,y=view.y; while(m<0){m+=12;y--} while(m>11){m-=12;y++}
   view={y,m};
   const t=new Date(); sel=(t.getFullYear()===y&&t.getMonth()===m)?today:key(new Date(y,m,1));
-  renderAll(true); agenda.scrollTop=0;
+  renderAll(true);
 }
 
 /* ---------- toast + undo ---------- */
@@ -583,6 +574,16 @@ $('bkFile').onchange=async()=>{
     $('bkMsg').textContent=n+' Termine aus dem Backup übernommen. Vorhandene Termine bleiben erhalten.';
   }catch(e){$('bkMsg').textContent='Die Datei ist kein Monatsblatt-Backup.'}
 };
+
+/* ---------- keep sheets above the on-screen keyboard ---------- */
+function fitSheets(){
+  const vv=window.visualViewport; if(!vv)return;
+  const kb=Math.max(0,Math.round(window.innerHeight-vv.height-vv.offsetTop));
+  document.querySelectorAll('.sheet').forEach(sh=>{sh.style.paddingBottom=kb+'px'});
+  const a=document.activeElement; if(kb&&a&&a.closest&&a.closest('.panel'))a.scrollIntoView({block:'nearest'});
+}
+if(window.visualViewport){visualViewport.addEventListener('resize',fitSheets);visualViewport.addEventListener('scroll',fitSheets)}
+window.addEventListener('resize',fitSheets);
 
 /* ---------- boot ---------- */
 loadCache(); renderAll(true);
