@@ -62,7 +62,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .cal{display:flex;flex-direction:column;min-height:0;padding-bottom:8px}
 .wk{display:grid;grid-template-columns:repeat(7,1fr);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:4px}
 .grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;touch-action:pan-y}
-.day{border:0;background:transparent;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;padding:4px 0 0;min-width:0;min-height:0;overflow:hidden}
+.day{border:0;background:transparent;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;padding:4px 0 0;min-width:0;min-height:0;position:relative}
+.day .n,.day .syms{position:relative;z-index:1}
+.band{position:absolute;left:-1px;right:-1px;background:color-mix(in srgb,var(--c) 28%,transparent);pointer-events:none}
+.band.bs{left:3px;border-top-left-radius:9px;border-bottom-left-radius:9px}
+.band.be{right:3px;border-top-right-radius:9px;border-bottom-right-radius:9px}
+.day.out .band{opacity:.5}
 .day .n{flex:none;font:500 15px/1 var(--f-display);font-variant-numeric:tabular-nums;width:28px;height:28px;display:grid;place-items:center;border-radius:50%}
 .day.out .n{color:var(--muted);opacity:.55}
 .day.out .syms{opacity:.5}
@@ -115,6 +120,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 @keyframes up{from{transform:translateY(24px);opacity:.6}}
 .panel h2{margin:0;font:700 19px var(--f-display)}
 .field{display:flex;flex-direction:column;gap:6px}
+.err2{color:var(--danger);font-size:13px;margin-top:-6px}
 .field>label,.lbl{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 textarea,input[type=date],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 textarea{min-height:64px;resize:vertical}
@@ -135,7 +141,7 @@ textarea{min-height:64px;resize:vertical}
 .delrow .btn{background:color-mix(in srgb,var(--danger) 14%,var(--surface));color:var(--danger)}
 
 /* toast */
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:30;
+.toast{width:max-content;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:30;
   background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 10px 10px 14px;display:flex;align-items:center;gap:12px;
   max-width:calc(100% - 32px);font-size:14px;box-shadow:0 6px 18px rgb(0 0 0 / .25)}
 .toast button{border:0;background:transparent;color:var(--bg);font-weight:700;text-decoration:underline;padding:4px 6px}
@@ -195,7 +201,9 @@ textarea{min-height:64px;resize:vertical}
     <div class="row2">
       <div class="field"><label for="evDate" id="dateLbl">Datum</label><input type="date" id="evDate" required></div>
       <div class="field" id="untilWrap" hidden><label for="evUntil">Endet am</label><input type="date" id="evUntil"></div>
+      <div class="field" id="endWrap"><label for="evEnd">Bis (mehrtägig)</label><input type="date" id="evEnd"></div>
     </div>
+    <div class="err2" id="endErr" hidden>„Bis“ muss nach dem ersten Tag liegen.</div>
     <div class="field">
       <label for="evRep">Wiederholen</label>
       <select id="evRep"></select>
@@ -236,6 +244,10 @@ const WD_L=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Sam
 const WD_S=['So','Mo','Di','Mi','Do','Fr','Sa'];
 const COLORS=[['freunde','Freunde'],['familie','Familie'],['geburtstag','Geburtstag'],['orga','Orga'],['arbeit','Arbeit / Uni'],['sport','Sport'],['erledigung','Erledigungen'],['sonstiges','Sonstiges'],['wichtig','Wichtig']];
 const OLD={blau:'arbeit',gruen:'sport',gelb:'erledigung',orange:'geburtstag',rot:'wichtig',pink:'familie',lila:'freunde',grau:'sonstiges'};
+const isRange=e=>(!e.rep||e.rep==='none')&&!!e.end&&e.end>e.date;
+const addDays=(s,n)=>{const d=parse(s);return key(new Date(d.getFullYear(),d.getMonth(),d.getDate()+n))};
+const shortDay=s=>{const d=parse(s);return WD_S[d.getDay()]+' '+d.getDate()+'. '+MON_S[d.getMonth()]};
+function shifted(ev,from,to){const o=Object.assign(clone(ev),{date:to});if(isRange(ev)){const n=Math.round((parse(to)-parse(from))/864e5);o.date=addDays(ev.date,n);o.end=addDays(ev.end,n)}return o}
 const catOf=e=>COLORS.some(c=>c[0]===e.color)?e.color:(OLD[e.color]||'sonstiges');
 const icon=(k,cls)=>'<svg class="ic'+(cls?' '+cls:'')+'" style="--c:var(--c-'+k+')" aria-hidden="true"><use href="#i-'+k+'"/></svg>';
 const CACHE='monatsblatt.v1';
@@ -265,7 +277,7 @@ function removeEv(id){delete events[id];saveCache()}
 function occurs(ev,s,d){
   if(s<ev.date)return false;
   const r=ev.rep||'none';
-  if(r==='none')return s===ev.date;
+  if(r==='none')return s===ev.date||(!!ev.end&&s<=ev.end);
   if(ev.until&&s>ev.until)return false;
   if(ev.ex&&ev.ex.indexOf(s)>-1)return false;
   const st=parse(ev.date);
@@ -314,6 +326,7 @@ function renderGrid(){
   const per=grid.clientWidth?Math.max(1,Math.min(3,Math.floor((cw-2)/14))):3;
   const cap=per;
   grid.style.setProperty('--sw',(per*14)+'px');
+  const compact=!!grid.clientHeight&&ch<50, bH=compact?26:28, bT=compact?2:4;
   grid.classList.toggle('compact',!!grid.clientHeight&&ch<50);
   let h='';
   for(let i=0;i<rows*7;i++){
@@ -321,16 +334,20 @@ function renderGrid(){
     const cls=['day'];
     if(d.getMonth()!==m)cls.push('out'); if(s===today)cls.push('today'); if(s===sel)cls.push('sel');
     if(d.getDay()===0||d.getDay()===6)cls.push('wkend');
-    const cats=evs.map(catOf).sort((a,b)=>(b==='wichtig')-(a==='wichtig'));
+    const ranges=evs.filter(isRange).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.created||0)-(b.created||0)).slice(0,3);
+    let bands='';
+    ranges.forEach((e,j)=>{const hh=bH/ranges.length;
+      bands+='<span class="band'+(s===e.date||d.getDay()===1?' bs':'')+(s===e.end||d.getDay()===0?' be':'')+'" style="--c:var(--c-'+catOf(e)+');top:'+(bT+j*hh)+'px;height:'+hh+'px"></span>'});
+    const cats=evs.filter(e=>!isRange(e)||e.date===s).map(catOf).sort((a,b)=>(b==='wichtig')-(a==='wichtig'));
     let dots=(cats.length>cap?cats.slice(0,cap-1):cats).map(k=>icon(k)).join('');
     if(cats.length>cap)dots+='<b>+</b>';
-    h+='<button type="button" class="'+cls.join(' ')+'" data-date="'+s+'" aria-label="'+d.getDate()+'. '+MONTHS[d.getMonth()]+(evs.length?', '+evs.length+' Termin'+(evs.length>1?'e':''):'')+'"><span class="n">'+d.getDate()+'</span><span class="syms">'+dots+'</span></button>';
+    h+='<button type="button" class="'+cls.join(' ')+'" data-date="'+s+'" aria-label="'+d.getDate()+'. '+MONTHS[d.getMonth()]+(evs.length?', '+evs.length+' Termin'+(evs.length>1?'e':''):'')+'">'+bands+'<span class="n">'+d.getDate()+'</span><span class="syms">'+dots+'</span></button>';
   }
   grid.innerHTML=h;
   $('mname').textContent=MONTHS[m]; $('yname').textContent=y;
 }
 function card(e,s){
-  const r=e.rep&&e.rep!=='none'?'<span class="r">'+esc(repShort(e))+'</span>':'';
+  const r=e.rep&&e.rep!=='none'?'<span class="r">'+esc(repShort(e))+'</span>':isRange(e)?'<span class="r">↔ '+shortDay(e.date)+' – '+shortDay(e.end)+'</span>':'';
   return '<button type="button" class="ev" data-id="'+e.id+'" data-date="'+s+'" style="--c:var(--c-'+catOf(e)+')">'+icon(catOf(e))+'<span class="b"><span class="t">'+esc(e.text)+'</span>'+r+'</span></button>';
 }
 function renderAgenda(scroll){
@@ -385,7 +402,7 @@ function fillRep(val){
   $('evRep').innerHTML=opts.map(([v,l])=>'<option value="'+v+'">'+esc(l)+'</option>').join('');
   $('evRep').value=opts.some(o=>o[0]===val)?val:'none'; syncRep();
 }
-function syncRep(){const r=$('evRep').value!=='none';$('untilWrap').hidden=!r;$('dateLbl').textContent=r?'Ab':'Datum'}
+function syncRep(){const r=$('evRep').value!=='none';$('untilWrap').hidden=!r;$('endWrap').hidden=r;$('endErr').hidden=true;$('dateLbl').textContent=r?'Ab':'Datum'}
 $('evRep').onchange=syncRep;
 $('evDate').onchange=()=>fillRep($('evRep').value);
 
@@ -393,7 +410,7 @@ function openEditor(ev,date){
   isNew=!ev; occDate=date||null; delArmed=false;
   editing=ev?clone(ev):{id:newId(),text:'',date:date||sel,color:lastColor,rep:'none',created:Date.now()};
   $('sheetTitle').textContent=isNew?'Neuer Termin':'Termin bearbeiten';
-  $('evText').value=editing.text; $('evDate').value=editing.date; $('evUntil').value=editing.until||'';
+  $('evText').value=editing.text; $('evDate').value=editing.date; $('evUntil').value=editing.until||''; $('evEnd').value=editing.end||''; $('endErr').hidden=true;
   setColor(catOf(editing)); fillRep(editing.rep||'none');
   $('evErr').hidden=true; $('delBtn').hidden=isNew; $('delBtn').textContent='Löschen'; $('delChoice').hidden=true;
   $('sheet').hidden=false; $('fab').hidden=true;
@@ -410,6 +427,8 @@ $('form').onsubmit=e=>{
   const date=$('evDate').value||editing.date, rep=$('evRep').value;
   const ev=Object.assign({},editing,{text,date,color:curColor,rep});
   if(timeOf(text)!==timeOf(editing.text||''))delete ev.ord;
+  if(rep==='none'){const en=$('evEnd').value; if(en&&en<date){$('endErr').hidden=false;return} if(en&&en>date)ev.end=en; else delete ev.end;}
+  else delete ev.end;
   if(rep==='none'){delete ev.until;delete ev.ex} else {const u=$('evUntil').value; if(u&&u>=date)ev.until=u; else delete ev.until;}
   lastColor=curColor; put(ev); closeEditor();
   if(isNew)select(date); else renderAll(false);
@@ -542,7 +561,7 @@ function reorder(id,from,to,idx){
     if(cur===idx||cur===-1){renderAll(false);return}
     moved=clone(ev); msg='Reihenfolge geändert';
   } else if(!ev.rep||ev.rep==='none'){
-    moved=Object.assign(clone(ev),{date:to}); msg='Verschoben auf '+WD_S[td.getDay()]+' '+td.getDate()+'. '+MON_S[td.getMonth()];
+    moved=shifted(ev,from,to); msg='Verschoben auf '+WD_S[td.getDay()]+' '+td.getDate()+'. '+MON_S[td.getMonth()];
   } else {
     extra.push(Object.assign(clone(ev),{ex:(ev.ex||[]).concat(from)}));
     moved={id:newId(),text:ev.text,color:ev.color,date:to,rep:'none',created:Date.now()};
@@ -562,7 +581,8 @@ function moveEvent(id,from,to){
   const ev=events[id]; if(!ev)return;
   const td=parse(to), lbl=WD_S[td.getDay()]+' '+td.getDate()+'. '+MON_S[td.getMonth()];
   if(!ev.rep||ev.rep==='none'){
-    withUndo('Verschoben auf '+lbl,[id],()=>put(Object.assign({},ev,{date:to})));
+    const nv=shifted(ev,from,to);
+    withUndo(isRange(nv)?'Verschoben: '+shortDay(nv.date)+' – '+shortDay(nv.end):'Verschoben auf '+lbl,[id],()=>put(nv));
   } else {
     const nid=newId();
     withUndo('Nur dieser Termin verschoben auf '+lbl,[id,nid],()=>{
