@@ -404,13 +404,18 @@ function fillRep(val){
 }
 function syncRep(){const r=$('evRep').value!=='none';$('untilWrap').hidden=!r;$('endWrap').hidden=r;$('endErr').hidden=true;$('dateLbl').textContent=r?'Ab':'Datum'}
 $('evRep').onchange=syncRep;
-$('evDate').onchange=()=>fillRep($('evRep').value);
+$('evDate').onchange=()=>{fillRep($('evRep').value);syncEnd()};
+function syncEnd(){const d=$('evDate').value;$('evEnd').min=d||'';$('evUntil').min=d||'';
+  if(d&&$('evEnd').value&&$('evEnd').value<d)$('evEnd').value='';$('endErr').hidden=true}
+// open the "Bis" picker at the start day instead of today
+['pointerdown','focus'].forEach(t=>$('evEnd').addEventListener(t,()=>{if(!$('evEnd').value&&$('evDate').value)$('evEnd').value=$('evDate').value}));
+['pointerdown','focus'].forEach(t=>$('evUntil').addEventListener(t,()=>{if(!$('evUntil').value&&$('evDate').value)$('evUntil').value=$('evDate').value}));
 
 function openEditor(ev,date){
   isNew=!ev; occDate=date||null; delArmed=false;
   editing=ev?clone(ev):{id:newId(),text:'',date:date||sel,color:lastColor,rep:'none',created:Date.now()};
   $('sheetTitle').textContent=isNew?'Neuer Termin':'Termin bearbeiten';
-  $('evText').value=editing.text; $('evDate').value=editing.date; $('evUntil').value=editing.until||''; $('evEnd').value=editing.end||''; $('endErr').hidden=true;
+  $('evText').value=editing.text; $('evDate').value=editing.date; $('evUntil').value=editing.until||''; $('evEnd').value=editing.end||''; $('endErr').hidden=true; syncEnd();
   setColor(catOf(editing)); fillRep(editing.rep||'none');
   $('evErr').hidden=true; $('delBtn').hidden=isNew; $('delBtn').textContent='Löschen'; $('delChoice').hidden=true;
   $('sheet').hidden=false; $('fab').hidden=true;
