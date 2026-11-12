@@ -64,7 +64,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;touch-action:pan-y}
 .day{border:0;background:transparent;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;padding:4px 0 0;min-width:0;min-height:0;position:relative}
 .day .n,.day .syms{position:relative;z-index:1}
-.band{position:absolute;left:-1px;right:-1px;background:color-mix(in srgb,var(--c) 28%,transparent);pointer-events:none}
+.band{position:absolute;left:-1px;right:-1px;background:color-mix(in srgb,var(--c) 15%,transparent);pointer-events:none}
 .band.bs{left:3px;border-top-left-radius:9px;border-bottom-left-radius:9px}
 .band.be{right:3px;border-top-right-radius:9px;border-bottom-right-radius:9px}
 .day.out .band{opacity:.5}
@@ -121,6 +121,7 @@ body.dragging,body.dragging *{cursor:grabbing!important}
 .panel h2{margin:0;font:700 19px var(--f-display)}
 .field{display:flex;flex-direction:column;gap:6px}
 .err2{color:var(--danger);font-size:13px;margin-top:-6px}
+.hint3{font-size:12px;color:var(--muted)}
 .field>label,.lbl{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 textarea,input[type=date],select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 textarea{min-height:64px;resize:vertical}
@@ -151,6 +152,21 @@ textarea{min-height:64px;resize:vertical}
 .bk p{margin:0;color:var(--muted);font-size:14px;max-width:46ch}
 .bk .btn{text-align:left}
 .meta{font-size:12px;color:var(--muted)}
+.remrows{display:flex;flex-direction:column;gap:8px}
+.remrow{display:flex;align-items:center;gap:8px}
+.remrow input{width:76px;flex:none;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.remrow select{flex:1;width:auto;min-width:0}
+.remrow span{color:var(--muted);font-size:14px}
+.remx{flex:none;width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:var(--muted);font-size:17px}
+.addrem{align-self:flex-start;border:1px dashed var(--line);background:transparent;border-radius:10px;padding:8px 12px;font-size:14px;color:var(--ink)}
+.bk h2.sec{padding-top:10px;border-top:1px solid var(--line);margin-top:4px}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;max-width:46ch}
+.topic{display:flex;gap:8px;align-items:center}
+.topic code{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+.topic .btn{flex:none}
+.acts2{display:flex;gap:8px;flex-wrap:wrap}
+a.btn{text-decoration:none;color:inherit;display:inline-block}
+.bk p.small{font-size:12px}
 </style>
 </head>
 <body>
@@ -173,7 +189,7 @@ textarea{min-height:64px;resize:vertical}
       <button class="todaybtn" id="todayBtn" type="button">Heute</button>
       <button class="nav" id="prev" type="button" aria-label="Vorheriger Monat">‹</button>
       <button class="nav" id="next" type="button" aria-label="Nächster Monat">›</button>
-      <button class="nav" id="menuBtn" type="button" aria-label="Backup" style="font-size:20px">⋯</button>
+      <button class="nav" id="menuBtn" type="button" aria-label="Einstellungen" style="font-size:20px">⋯</button>
     </div>
     <div class="status" id="status" hidden></div>
   </header>
@@ -207,6 +223,13 @@ textarea{min-height:64px;resize:vertical}
     <div class="field">
       <label for="evRep">Wiederholen</label>
       <select id="evRep"></select>
+      <span class="hint3" id="bdayHint" hidden>Geburtstage wiederholen sich jedes Jahr.</span>
+    </div>
+    <div class="field">
+      <span class="lbl">Erinnerung</span>
+      <div class="remrows" id="remRows"></div>
+      <button class="addrem" type="button" id="remAdd">+ Erinnerung</button>
+      <span class="hint3" id="remNote"></span>
     </div>
     <div class="delrow" id="delChoice" hidden>
       <button class="btn" type="button" id="delOne">Nur diesen Tag</button>
@@ -223,7 +246,23 @@ textarea{min-height:64px;resize:vertical}
 
 <div class="sheet" id="bsheet" hidden>
   <div class="panel bk">
-    <h2>Backup</h2>
+    <h2>Erinnerungen</h2>
+    <div class="bk" id="ntfyOff">
+      <p>Erinnerungen kommen als Benachrichtigung über die kostenlose App <b>ntfy</b>. Das richtest du einmal ein, danach kannst du bei jedem Termin bis zu zwei Erinnerungen setzen.</p>
+      <button class="btn pri" type="button" id="ntfySetup">Erinnerungen einrichten</button>
+    </div>
+    <div class="bk" id="ntfyOn" hidden>
+      <ol class="steps">
+        <li>Installier <b>ntfy</b> aus dem Play Store.</li>
+        <li>Tipp auf <b>In ntfy abonnieren</b>. Falls das nicht klappt: in ntfy auf <b>+</b> tippen, den Kanal unten einfügen und <b>Abonnieren</b> tippen.</li>
+        <li>Tipp auf <b>Test senden</b>. Nach ein paar Sekunden sollte eine Benachrichtigung kommen.</li>
+      </ol>
+      <div class="topic"><code id="ntfyTopic"></code><button class="btn" type="button" id="ntfyCopy">Kopieren</button></div>
+      <div class="acts2"><a class="btn" id="ntfyLink" href="#">In ntfy abonnieren</a><button class="btn" type="button" id="ntfyTest">Test senden</button></div>
+      <span class="meta" id="ntfyMsg"></span>
+      <p class="small">Die Erinnerungen laufen über den Server ntfy.sh. Der Kanalname ist zufällig. Wer ihn kennt, kann deine Erinnerungen mitlesen, also behalt ihn für dich.</p>
+    </div>
+    <h2 class="sec">Backup</h2>
     <p>Deine Termine liegen nur auf diesem Gerät. Speicher ab und zu ein Backup, zum Beispiel in Google Drive oder per Mail an dich selbst.</p>
     <span class="meta" id="bkInfo"></span>
     <button class="btn pri" type="button" id="bkExport">Backup speichern</button>
@@ -263,15 +302,16 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const newId=()=>'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 let events={};
-const today=key(new Date());
+let today=key(new Date());
 let sel=today; const t0=new Date(); let view={y:t0.getFullYear(),m:t0.getMonth()};
 let lastColor='freunde';
 
 /* ---------- storage ---------- */
-function loadCache(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c&&c.events){events=c.events;lastColor=c.lastColor?(COLORS.some(x=>x[0]===c.lastColor)?c.lastColor:(OLD[c.lastColor]||'freunde')):lastColor}}catch(e){}}
+function loadCache(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c&&c.events){events=c.events;lastColor=c.lastColor?(COLORS.some(x=>x[0]===c.lastColor)?c.lastColor:(OLD[c.lastColor]||'freunde')):lastColor;fixBdays()}}catch(e){}}
+function fixBdays(){Object.values(events).forEach(ev=>{if(catOf(ev)==='geburtstag'&&ev.rep!=='yearly'){ev.rep='yearly';delete ev.end;delete ev.until}})}
 function saveCache(){try{localStorage.setItem(CACHE,JSON.stringify({events,lastColor,saved:Date.now()}))}catch(e){showToast('Speichern im Browser fehlgeschlagen. Mach ein Backup.')}}
-function put(ev){events[ev.id]=ev;saveCache()}
-function removeEv(id){delete events[id];saveCache()}
+function put(ev){events[ev.id]=ev;saveCache();scheduleSync()}
+function removeEv(id){delete events[id];saveCache();scheduleSync()}
 
 /* ---------- recurrence ---------- */
 function occurs(ev,s,d){
@@ -318,6 +358,115 @@ function occList(s,d){
   return Object.values(events).filter(e=>occurs(e,s,d)).sort((a,b)=>(effKey(a)-effKey(b))||((a.created||0)-(b.created||0)));
 }
 
+/* ---------- reminders via ntfy ---------- */
+const NTFY='https://ntfy.sh', RKEY='monatsblatt.ntfy';
+const UNITS={m:{one:'Minute',many:'Minuten',dat:'Minuten',ms:6e4},h:{one:'Stunde',many:'Stunden',dat:'Stunden',ms:36e5},d:{one:'Tag',many:'Tage',dat:'Tagen',ms:864e5}};
+let ntfy={topic:'',sent:{}};
+try{const r=JSON.parse(localStorage.getItem(RKEY)||'null');if(r&&r.topic)ntfy={topic:r.topic,sent:r.sent||{}}}catch(e){}
+function saveNtfy(){try{localStorage.setItem(RKEY,JSON.stringify(ntfy))}catch(e){}}
+const leadMs=r=>r.n*UNITS[r.u].ms;
+const remTxt=r=>r.n+' '+(r.n===1?UNITS[r.u].one:UNITS[r.u].many);
+const remIn=r=>r.n+' '+(r.n===1?UNITS[r.u].one:UNITS[r.u].dat);
+const appUrl=()=>location.href.split('#')[0].split('?')[0];
+function remItems(days){
+  const now=Date.now(), lim=now+days*864e5, t=new Date(), out=[];
+  Object.values(events).forEach(ev=>{
+    if(!ev.rem||!ev.rem.length)return;
+    const span=Math.min(800,Math.ceil((days*864e5+Math.max(...ev.rem.map(leadMs)))/864e5)+1);
+    const tm=timeOf(ev.text);
+    for(let i=0;i<=span;i++){
+      const d=new Date(t.getFullYear(),t.getMonth(),t.getDate()+i), s=key(d);
+      if(!occurs(ev,s,d)||(isRange(ev)&&s!==ev.date))continue;
+      const base=new Date(d.getFullYear(),d.getMonth(),d.getDate(),tm<0?9:Math.floor(tm/60),tm<0?0:tm%60).getTime();
+      ev.rem.forEach((r,j)=>{const at=base-leadMs(r); if(at<=now+20e3||at>lim)return;
+        out.push({seq:'r-'+ev.id+'-'+s.replace(/-/g,'')+'-'+j,at,
+          title:ev.text.split('\n')[0].slice(0,90),
+          body:'In '+remIn(r)+' · '+WD_L[d.getDay()]+', '+d.getDate()+'. '+MONTHS[d.getMonth()]+(tm<0?'':', '+pad(Math.floor(tm/60))+':'+pad(tm%60)+' Uhr'),
+          prio:catOf(ev)==='wichtig'?4:3, tags:catOf(ev)==='wichtig'?'red_circle':'date'})});
+    }
+  });
+  return out;
+}
+function ntfyUrl(path,params){const q=new URLSearchParams(params||{}).toString();return NTFY+'/'+encodeURIComponent(ntfy.topic)+(path?'/'+path:'')+(q?'?'+q:'')}
+async function publish(it){
+  const r=await fetch(ntfyUrl(it.seq,{delay:String(Math.floor(it.at/1000)),title:it.title,priority:String(it.prio),tags:it.tags,click:appUrl()}),{method:'POST',body:it.body});
+  if(!r.ok)throw new Error('ntfy '+r.status);
+}
+async function unpublish(seq){const r=await fetch(ntfyUrl(seq+'/delete'));if(!r.ok&&r.status!==404)throw new Error('ntfy '+r.status)}
+function writeQueue(){
+  try{if(!('caches' in window))return;
+    const body=JSON.stringify({topic:ntfy.topic,click:appUrl(),items:ntfy.topic?remItems(30):[]});
+    caches.open('monatsblatt-rem').then(c=>c.put('./__rem.json',new Response(body,{headers:{'content-type':'application/json'}}))).catch(()=>{});
+  }catch(e){}
+}
+let syncT=null, syncing=false, syncAgain=false;
+function scheduleSync(){clearTimeout(syncT);syncT=setTimeout(syncReminders,1200)}
+async function syncReminders(){
+  writeQueue();
+  if(!ntfy.topic||!navigator.onLine)return;
+  if(syncing){syncAgain=true;return}
+  syncing=true;
+  try{
+    const now=Date.now(), want=remItems(3-1/24), wanted={};
+    for(const it of want){
+      wanted[it.seq]=1;
+      const sig=it.at+'|'+it.title+'|'+it.body+'|'+it.prio;
+      if(ntfy.sent[it.seq]&&ntfy.sent[it.seq].sig===sig)continue;
+      try{await publish(it);ntfy.sent[it.seq]={sig,at:it.at};saveNtfy()}catch(e){break}
+    }
+    for(const seq of Object.keys(ntfy.sent)){
+      const x=ntfy.sent[seq];
+      if(x.at<now-36e5){delete ntfy.sent[seq];continue}
+      if(!wanted[seq]&&x.at>now){try{await unpublish(seq);delete ntfy.sent[seq]}catch(e){}}
+    }
+    saveNtfy();
+  }finally{syncing=false;if(syncAgain){syncAgain=false;scheduleSync()}}
+}
+async function regPeriodic(){
+  try{const r=await navigator.serviceWorker.ready;if(!r.periodicSync)return;
+    const st=await navigator.permissions.query({name:'periodic-background-sync'});
+    if(st.state==='granted')await r.periodicSync.register('rem',{minInterval:12*36e5});
+  }catch(e){}
+}
+
+/* editor rows */
+let remDraft=[];
+function renderRem(){
+  $('remRows').innerHTML=remDraft.map((r,i)=>'<div class="remrow"><input type="number" inputmode="numeric" min="1" max="999" id="remN'+i+'" value="'+r.n+'" aria-label="Wie viele"><select id="remU'+i+'" aria-label="Einheit">'+
+    ['m','h','d'].map(u=>'<option value="'+u+'"'+(r.u===u?' selected':'')+'>'+UNITS[u].many+'</option>').join('')+
+    '</select><span>vorher</span><button type="button" class="remx" data-i="'+i+'" aria-label="Erinnerung entfernen">✕</button></div>').join('');
+  $('remAdd').hidden=remDraft.length>=2;
+  $('remNote').textContent=!remDraft.length?'':!ntfy.topic?'Richte Erinnerungen einmal über ⋯ oben rechts ein, sonst kommt keine Benachrichtigung an.':'Steht keine Uhrzeit im Text, rechnet die App mit 9:00 Uhr.';
+}
+function readRem(){remDraft=remDraft.map((r,i)=>{const el=$('remN'+i);if(!el)return r;const n=parseInt(el.value,10);return {n:n>0?Math.min(999,n):r.n,u:$('remU'+i).value}})}
+$('remAdd').onclick=()=>{readRem();remDraft.push(remDraft.length?{n:1,u:'d'}:{n:1,u:'h'});renderRem();const el=$('remN'+(remDraft.length-1));if(el)el.focus()};
+$('remRows').addEventListener('click',e=>{const b=e.target.closest('.remx');if(!b)return;readRem();remDraft.splice(+b.dataset.i,1);renderRem()});
+
+/* settings */
+function renderNtfy(){
+  $('ntfyOff').hidden=!!ntfy.topic; $('ntfyOn').hidden=!ntfy.topic; $('ntfyMsg').textContent='';
+  if(ntfy.topic){$('ntfyTopic').textContent=ntfy.topic;$('ntfyLink').href='ntfy://ntfy.sh/'+ntfy.topic;
+    const n=remItems(3).length; $('ntfyMsg').textContent=n?n+' Erinnerung'+(n===1?'':'en')+' für die nächsten 3 Tage geplant.':'';}
+}
+$('ntfySetup').onclick=()=>{
+  const a=new Uint8Array(12); crypto.getRandomValues(a);
+  ntfy={topic:'monatsblatt-'+Array.from(a,b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join(''),sent:{}};
+  saveNtfy(); renderNtfy(); regPeriodic(); scheduleSync();
+};
+$('ntfyCopy').onclick=()=>{
+  const t=ntfy.topic, done=()=>{$('ntfyMsg').textContent='Kanal kopiert.'};
+  try{navigator.clipboard.writeText(t).then(done,()=>selTopic())}catch(e){selTopic()}
+};
+function selTopic(){const r=document.createRange();r.selectNodeContents($('ntfyTopic'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('ntfyMsg').textContent='Markiert, jetzt lange drücken und kopieren.'}
+$('ntfyTest').onclick=async()=>{
+  $('ntfyMsg').textContent='Sende…';
+  try{const r=await fetch(ntfyUrl('',{title:'Monatsblatt',tags:'white_check_mark',click:appUrl()}),{method:'POST',body:'Test: Erinnerungen funktionieren.'});
+    if(!r.ok)throw 0; $('ntfyMsg').textContent='Gesendet. Kam keine Benachrichtigung? Prüf, ob du den Kanal in ntfy abonniert hast.';
+  }catch(e){$('ntfyMsg').textContent='Senden hat nicht geklappt. Bist du online?'}
+};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleSync()});
+window.addEventListener('online',scheduleSync);
+
 /* ---------- render ---------- */
 function renderGrid(){
   const {y,m}=view, off=(new Date(y,m,1).getDay()+6)%7, rows=6;
@@ -348,7 +497,8 @@ function renderGrid(){
 }
 function card(e,s){
   const r=e.rep&&e.rep!=='none'?'<span class="r">'+esc(repShort(e))+'</span>':isRange(e)?'<span class="r">↔ '+shortDay(e.date)+' – '+shortDay(e.end)+'</span>':'';
-  return '<button type="button" class="ev" data-id="'+e.id+'" data-date="'+s+'" style="--c:var(--c-'+catOf(e)+')">'+icon(catOf(e))+'<span class="b"><span class="t">'+esc(e.text)+'</span>'+r+'</span></button>';
+  const rm=e.rem&&e.rem.length?'<span class="r">Erinnerung '+e.rem.map(remTxt).join(' und ')+' vorher</span>':'';
+  return '<button type="button" class="ev" data-id="'+e.id+'" data-date="'+s+'" style="--c:var(--c-'+catOf(e)+')">'+icon(catOf(e))+'<span class="b"><span class="t">'+esc(e.text)+'</span>'+r+rm+'</span></button>';
 }
 function renderAgenda(scroll){
   const s=sel, d=parse(s), evs=occList(s,d);
@@ -392,17 +542,23 @@ let editing=null, occDate=null, isNew=false, delArmed=false;
 const sw=$('swatches');
 sw.innerHTML=COLORS.map(([k,n])=>'<button type="button" data-c="'+k+'" style="--c:var(--c-'+k+')" aria-label="'+n+'" title="'+n+'" aria-pressed="false">'+icon(k)+'</button>').join('');
 let curColor='freunde';
-function setColor(c){curColor=c;$('catName').textContent=(COLORS.find(x=>x[0]===c)||COLORS[0])[1];sw.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c))}
+function setColor(c){curColor=c;setTimeout(()=>{if(!$('sheet').hidden)syncRep()});$('catName').textContent=(COLORS.find(x=>x[0]===c)||COLORS[0])[1];sw.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.c===c))}
 sw.onclick=e=>{const b=e.target.closest('button');if(b)setColor(b.dataset.c)};
 // keep the keyboard open: tapping buttons or empty space in the form must not take focus from the text field
 $('form').addEventListener('mousedown',e=>{if(!e.target.closest('input,select,textarea'))e.preventDefault()});
 $('form').addEventListener('touchstart',e=>{},{passive:true});
 function fillRep(val){
+  $('evRep').disabled=false; delete $('evRep').dataset.prev;
   const s=$('evDate').value||sel, opts=repOptions(s);
   $('evRep').innerHTML=opts.map(([v,l])=>'<option value="'+v+'">'+esc(l)+'</option>').join('');
   $('evRep').value=opts.some(o=>o[0]===val)?val:'none'; syncRep();
 }
-function syncRep(){const r=$('evRep').value!=='none';$('untilWrap').hidden=!r;$('endWrap').hidden=r;$('endErr').hidden=true;$('dateLbl').textContent=r?'Ab':'Datum'}
+function syncRep(){
+  const R=$('evRep'), bd=curColor==='geburtstag';
+  if(bd){if(!R.disabled)R.dataset.prev=R.value;R.value='yearly';R.disabled=true}
+  else if(R.disabled){R.disabled=false;R.value=R.dataset.prev||'none';if(!R.value)R.value='none'}
+  $('bdayHint').hidden=!bd;
+  const r=R.value!=='none';$('untilWrap').hidden=!r;$('endWrap').hidden=r;$('endErr').hidden=true;$('dateLbl').textContent=r?'Ab':'Datum'}
 $('evRep').onchange=syncRep;
 $('evDate').onchange=()=>{fillRep($('evRep').value);syncEnd()};
 function syncEnd(){const d=$('evDate').value;$('evEnd').min=d||'';$('evUntil').min=d||'';
@@ -415,7 +571,7 @@ function openEditor(ev,date){
   isNew=!ev; occDate=date||null; delArmed=false;
   editing=ev?clone(ev):{id:newId(),text:'',date:date||sel,color:lastColor,rep:'none',created:Date.now()};
   $('sheetTitle').textContent=isNew?'Neuer Termin':'Termin bearbeiten';
-  $('evText').value=editing.text; $('evDate').value=editing.date; $('evUntil').value=editing.until||''; $('evEnd').value=editing.end||''; $('endErr').hidden=true; syncEnd();
+  $('evText').value=editing.text; $('evDate').value=editing.date; $('evUntil').value=editing.until||''; $('evEnd').value=editing.end||''; $('endErr').hidden=true; remDraft=(editing.rem||[]).map(r=>({n:r.n,u:r.u})); renderRem(); syncEnd();
   setColor(catOf(editing)); fillRep(editing.rep||'none');
   $('evErr').hidden=true; $('delBtn').hidden=isNew; $('delBtn').textContent='Löschen'; $('delChoice').hidden=true;
   $('sheet').hidden=false; $('fab').hidden=true;
@@ -435,7 +591,8 @@ $('form').onsubmit=e=>{
   if(rep==='none'){const en=$('evEnd').value; if(en&&en<date){$('endErr').hidden=false;return} if(en&&en>date)ev.end=en; else delete ev.end;}
   else delete ev.end;
   if(rep==='none'){delete ev.until;delete ev.ex} else {const u=$('evUntil').value; if(u&&u>=date)ev.until=u; else delete ev.until;}
-  lastColor=curColor; put(ev); closeEditor();
+  readRem(); if(remDraft.length)ev.rem=remDraft.map(r=>({n:r.n,u:r.u})); else delete ev.rem;
+  if(curColor!=='geburtstag'&&curColor!=='wichtig')lastColor=curColor; put(ev); closeEditor();
   if(isNew)select(date); else renderAll(false);
 };
 $('delBtn').onclick=()=>{
@@ -600,7 +757,7 @@ function moveEvent(id,from,to){
 
 /* ---------- backup ---------- */
 function bkInfo(){const n=Object.keys(events).length;$('bkInfo').textContent=n+' Termin'+(n===1?'':'e')+' gespeichert.';$('bkMsg').textContent=''}
-$('menuBtn').onclick=()=>{bkInfo();$('bsheet').hidden=false;$('fab').hidden=true};
+$('menuBtn').onclick=()=>{bkInfo();renderNtfy();$('bsheet').hidden=false;$('fab').hidden=true};
 function closeBk(){$('bsheet').hidden=true;$('fab').hidden=false}
 $('bkClose').onclick=closeBk;
 $('bsheet').addEventListener('click',e=>{if(e.target===$('bsheet'))closeBk()});
@@ -622,7 +779,7 @@ $('bkFile').onchange=async()=>{
     let n=0;
     Object.values(src).forEach(ev=>{if(ev&&ev.id&&typeof ev.text==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(ev.date)){
       ev.color=catOf(ev); events[ev.id]=ev; n++}});
-    saveCache(); renderAll(true); bkInfo();
+    saveCache(); scheduleSync(); renderAll(true); bkInfo();
     $('bkMsg').textContent=n+' Termine aus dem Backup übernommen. Vorhandene Termine bleiben erhalten.';
   }catch(e){$('bkMsg').textContent='Die Datei ist kein Monatsblatt-Backup.'}
 };
@@ -638,8 +795,14 @@ if(window.visualViewport){visualViewport.addEventListener('resize',fitSheets);vi
 window.addEventListener('resize',fitSheets);
 let rzT=null;window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(renderGrid,120)});
 
+/* ---------- keep "today" current (app may stay open in the background for days) ---------- */
+function checkDay(){const t=key(new Date());if(t!==today){today=t;select(today)}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDay()});
+window.addEventListener('focus',checkDay);window.addEventListener('pageshow',checkDay);
+setInterval(checkDay,30e3);
+
 /* ---------- boot ---------- */
-loadCache(); renderAll(true);
+loadCache(); renderAll(true); scheduleSync(); if(ntfy.topic)regPeriodic();
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
